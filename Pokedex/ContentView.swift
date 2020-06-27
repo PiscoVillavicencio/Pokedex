@@ -8,13 +8,9 @@
 
 import SwiftUI
 
-let stringUrl = "https://pokeapi.co/api/v2/pokemon"
 
-let url = URL(string: stringUrl)!
 
-let session = URLSession.shared
-
-struct Pokedex: Decodable {
+struct PokedexResponse: Decodable {
     let results: [Pokemon]
 }
 
@@ -25,13 +21,32 @@ struct Pokemon: Identifiable, Decodable {
 }
 
 class PokedexViewModel: ObservableObject {
+    var page = 0
+    var loading = false
+ 
+    
     @Published var pokemons = [Pokemon]()
     
+    func shouldLoadMoreData() -> Bool {
+      return true
+    }
+    
     func getPokemons() {
+        
+        if !shouldLoadMoreData(){
+            return
+        }
+        let stringUrl = "https://pokeapi.co/api/v2/pokemon?offset=\(page)&limit=20"
+
+        let url = URL(string: stringUrl)!
+
+         let session = URLSession.shared
         session.dataTask(with: url){
             (data, response, error) in
             DispatchQueue.main.async {
-                self.pokemons = try! JSONDecoder().decode(Pokedex.self, from: data!).results
+                self.pokemons = try! JSONDecoder().decode(PokedexResponse.self, from: data!).results
+                self.page += 20
+                self.loading = false
             }
         }.resume()
     }

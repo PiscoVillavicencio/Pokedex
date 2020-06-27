@@ -22,20 +22,14 @@ struct Pokemon: Identifiable, Decodable {
 
 class PokedexViewModel: ObservableObject {
     var page = 0
-    var loading = false
  
     
     @Published var pokemons = [Pokemon]()
     
-    func shouldLoadMoreData() -> Bool {
-      return true
-    }
-    
+
     func getPokemons() {
         
-        if !shouldLoadMoreData(){
-            return
-        }
+   
         let stringUrl = "https://pokeapi.co/api/v2/pokemon?offset=\(page)&limit=20"
 
         let url = URL(string: stringUrl)!
@@ -46,7 +40,6 @@ class PokedexViewModel: ObservableObject {
             DispatchQueue.main.async {
                 self.pokemons = try! JSONDecoder().decode(PokedexResponse.self, from: data!).results
                 self.page += 20
-                self.loading = false
             }
         }.resume()
     }
